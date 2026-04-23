@@ -11,6 +11,7 @@ import com.google.api.services.gmail.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,41 +20,70 @@ public class GmailService {
     @Autowired
     TimeDateRepo timeDateRepo;
 
-    public void readEmails() throws Exception {
+    public List<String> getSpentMails(String date) throws Exception {
 
         var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+
+        List<String> messages = new ArrayList<>();
 
         Gmail service = new Gmail.Builder(
                 httpTransport,
                 GsonFactory.getDefaultInstance(),
-                GmailConfig.getCredentials()
+                GmailConfig.getStoredCredential()
         ).setApplicationName("gmail-reader").build();
 
         ListMessagesResponse response = service.users().messages()
                 .list("me")
-                .setQ("subject:❗ You have done a UPI txn. Check details! after:2026/04/20")
+                .setQ("subject:❗ You have done a UPI txn. Check details! after:"+date)
                 .setMaxResults(20L)
                 .execute();
 
-        List<Message> messages = response.getMessages();
+        List<Message> messagesId = response.getMessages();
 
-        if (messages != null) {
-            for (Message msg : messages) {
+        if (messagesId != null) {
+            for (Message msgId : messagesId) {
                 Message fullMsg = service.users().messages()
-                        .get("me", msg.getId())
+                        .get("me", msgId.getId())
                         .execute();
 
-                System.out.println(fullMsg.getSnippet());
-                TimeDate timeDate = new TimeDate();
-                timeDate.setDate("20 April");
-                timeDate.setTime(fullMsg.getSnippet());
-                timeDateRepo.save(timeDate);
+                messages.add(fullMsg.getSnippet());
             }
         }
+
+        return messages;
     }
 
-    public List<TimeDate> printEmail() {
-        System.out.println("___________________________________________________");
-        return timeDateRepo.findAll();
+    public List<String> getEarnedMails(String date) throws Exception {
+
+        var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+
+        List<String> messages = new ArrayList<>();
+
+        Gmail service = new Gmail.Builder(
+                httpTransport,
+                GsonFactory.getDefaultInstance(),
+                GmailConfig.getStoredCredential()
+        ).setApplicationName("gmail-reader").build();
+
+        ListMessagesResponse response = service.users().messages()
+                .list("me")
+                .setQ("subject:View: Account update for your HDFC Bank A/c after:"+date)
+                .setMaxResults(20L)
+                .execute();
+
+        List<Message> messagesId = response.getMessages();
+
+        if (messagesId != null) {
+            for (Message msgId : messagesId) {
+                Message fullMsg = service.users().messages()
+                        .get("me", msgId.getId())
+                        .execute();
+
+                messages.add(fullMsg.getSnippet());
+            }
+        }
+
+        return messages;
     }
+
 }

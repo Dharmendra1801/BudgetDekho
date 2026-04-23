@@ -6,7 +6,7 @@ target/
 
 credentials.json
 StoredCredential
-application.properties'
+application.properties
 
 
 ### STS ###
