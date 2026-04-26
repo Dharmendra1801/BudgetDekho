@@ -1,6 +1,7 @@
 package com.Uday.BudgetDekho.Services;
 
 import com.Uday.BudgetDekho.Config.GmailConfig;
+import com.Uday.BudgetDekho.DTO.MailsDTO;
 import com.Uday.BudgetDekho.Model.TimeDate;
 import com.Uday.BudgetDekho.Repo.TimeDateRepo;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -18,72 +19,79 @@ import java.util.List;
 public class GmailService {
 
     @Autowired
-    TimeDateRepo timeDateRepo;
+    TimeDateService timeDateService;
 
-    public List<String> getSpentMails(String date) throws Exception {
+    public MailsDTO getMails(String date) throws Exception {
 
         var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        var credential = GmailConfig.getStoredCredential();
 
-        List<String> messages = new ArrayList<>();
+        if (credential.getExpiresInSeconds() == null || credential.getExpiresInSeconds() <= 60) {
+            credential.refreshToken();
+        }
 
         Gmail service = new Gmail.Builder(
                 httpTransport,
                 GsonFactory.getDefaultInstance(),
-                GmailConfig.getStoredCredential()
+                credential
         ).setApplicationName("gmail-reader").build();
 
-        ListMessagesResponse response = service.users().messages()
+        ListMessagesResponse responseSpent = service.users().messages()
                 .list("me")
                 .setQ("subject:❗ You have done a UPI txn. Check details! after:"+date)
                 .setMaxResults(20L)
                 .execute();
 
-        List<Message> messagesId = response.getMessages();
 
-        if (messagesId != null) {
-            for (Message msgId : messagesId) {
-                Message fullMsg = service.users().messages()
-                        .get("me", msgId.getId())
-                        .execute();
-
-                messages.add(fullMsg.getSnippet());
-            }
-        }
-
-        return messages;
-    }
-
-    public List<String> getEarnedMails(String date) throws Exception {
-
-        var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-
-        List<String> messages = new ArrayList<>();
-
-        Gmail service = new Gmail.Builder(
-                httpTransport,
-                GsonFactory.getDefaultInstance(),
-                GmailConfig.getStoredCredential()
-        ).setApplicationName("gmail-reader").build();
-
-        ListMessagesResponse response = service.users().messages()
+        ListMessagesResponse responseEarned = service.users().messages()
                 .list("me")
                 .setQ("subject:View: Account update for your HDFC Bank A/c after:"+date)
                 .setMaxResults(20L)
                 .execute();
 
-        List<Message> messagesId = response.getMessages();
+        timeDateService.saveDate();
 
-        if (messagesId != null) {
-            for (Message msgId : messagesId) {
+        List<Message> spentMessagesId = responseSpent.getMessages();
+        List<Message> earnedMessagesId = responseEarned.getMessages();
+
+        List<String> spentMessages = new ArrayList<>();
+        List<String> earnedMessages = new ArrayList<>();
+
+        List<Long> spentMessagesTime = new ArrayList<>();
+        List<Long> earnedMessagesTime = new ArrayList<>();
+
+        if (spentMessagesId != null) {
+            for (Message msgId : spentMessagesId) {
                 Message fullMsg = service.users().messages()
                         .get("me", msgId.getId())
                         .execute();
 
-                messages.add(fullMsg.getSnippet());
+                spentMessages.add(fullMsg.getSnippet());
+                spentMessagesTime.add(fullMsg.getInternalDate());
             }
         }
 
-        return messages;
+        if (earnedMessagesId != null) {
+            for (Message msgId : earnedMessagesId) {
+                Message fullMsg = service.users().messages()
+                        .get("me", msgId.getId())
+                        .execute();
+
+                earnedMessages.add(fullMsg.getSnippet());
+                earnedMessagesTime.add(fullMsg.getInternalDate());
+            }
+        }
+
+        return createObj(spentMessages,earnedMessages,spentMessagesTime,earnedMessagesTime);
+    }
+
+    private MailsDTO createObj(List<String> spentMessages, List<String> earnedMessages, List<Long> spentMessagesTime, List<Long> earnedMessagesTime) {
+        MailsDTO mailsDTO = new MailsDTO();
+        mailsDTO.setEarnedMails(earnedMessages);
+        mailsDTO.setSpentMails(spentMessages);
+        mailsDTO.setSpentMailsTime(spentMessagesTime);
+        mailsDTO.setEarnedMailsTime(earnedMessagesTime);
+        return mailsDTO;
     }
 
 }

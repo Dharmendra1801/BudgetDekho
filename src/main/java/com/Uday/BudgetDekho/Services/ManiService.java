@@ -1,17 +1,38 @@
 package com.Uday.BudgetDekho.Services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class StringManiService {
-    public List<String> getDataFromMails(List<String> spent, List<String> earned) {
+public class ManiService {
+
+    @Autowired
+    TimeDateService timeDateService;
+
+    public List<String> getDataFromMails(List<String> spent, List<String> earned, List<Long> spentTime, List<Long> earnedTime) {
         List<String> result = new ArrayList<>();
+        removeMailsBeforeTime(spent,spentTime);
+        removeMailsBeforeTime(earned,earnedTime);
         getDataFromSpentMails(spent,result);
         getDataFromEarnedMails(earned,result);
         return result;
+    }
+
+    private void removeMailsBeforeTime(List<String> messages, List<Long> times) {
+        Long lastTime = timeDateService.getTime();
+        int x = 0;
+        for (Long time: times.reversed()) {
+            if (time < lastTime) {
+                System.out.println(time);
+                System.out.println(lastTime);
+                x++;
+            }
+            else break;
+        }
+        messages.subList(messages.size()-x, messages.size()).clear();
     }
 
     private void getDataFromSpentMails(List<String> spent, List<String> result) {

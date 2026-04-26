@@ -1,5 +1,6 @@
 package com.Uday.BudgetDekho.Services;
 
+import com.Uday.BudgetDekho.DTO.MailsDTO;
 import com.Uday.BudgetDekho.Model.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,21 +14,28 @@ public class BudgetService {
     GmailService gmailService;
 
     @Autowired
-    StringManiService stringManiService;
+    ManiService maniService;
 
     @Autowired
     TransactionService transactionService;
 
+    @Autowired
+    TimeDateService timeDateService;
+
     public List<Transaction> refreshBudgets() throws Exception {
-        String date = "2026/04/17";
-        List<String> spentMails = gmailService.getSpentMails(date);
-        List<String> earnedMails = gmailService.getEarnedMails(date);
-        List<String> resultant = stringManiService.getDataFromMails(spentMails,earnedMails);
+        String date = timeDateService.getDate();
+        MailsDTO mailsDTO = gmailService.getMails(date);
+        List<String> resultant = maniService.getDataFromMails(mailsDTO.getSpentMails(),
+                                                            mailsDTO.getEarnedMails(),
+                                                            mailsDTO.getSpentMailsTime(),
+                                                            mailsDTO.getEarnedMailsTime());
         List<Transaction> transactions = transactionService.convertToObj(resultant);
-        updateData(transactions);
+        if (!updateData(transactions)) return null;
         return transactions;
     }
 
-    private void updateData(List<Transaction> transactions) {
+    private boolean updateData(List<Transaction> transactions) {
+        return true;
     }
+
 }
