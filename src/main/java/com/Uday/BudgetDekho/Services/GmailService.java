@@ -23,18 +23,7 @@ public class GmailService {
 
     public MailsDTO getMails(String date) throws Exception {
 
-        var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        var credential = GmailConfig.getStoredCredential();
-
-        if (credential.getExpiresInSeconds() == null || credential.getExpiresInSeconds() <= 60) {
-            credential.refreshToken();
-        }
-
-        Gmail service = new Gmail.Builder(
-                httpTransport,
-                GsonFactory.getDefaultInstance(),
-                credential
-        ).setApplicationName("gmail-reader").build();
+        Gmail service = gmailConfigs();
 
         ListMessagesResponse responseSpent = service.users().messages()
                 .list("me")
@@ -85,6 +74,21 @@ public class GmailService {
         return createObj(spentMessages,earnedMessages,spentMessagesTime,earnedMessagesTime);
     }
 
+    private Gmail gmailConfigs() throws Exception {
+        var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        var credential = GmailConfig.getStoredCredential();
+
+        if (credential.getExpiresInSeconds() == null || credential.getExpiresInSeconds() <= 60) {
+            credential.refreshToken();
+        }
+
+        return new Gmail.Builder(
+                httpTransport,
+                GsonFactory.getDefaultInstance(),
+                credential
+        ).setApplicationName("gmail-reader").build();
+    }
+
     private MailsDTO createObj(List<String> spentMessages, List<String> earnedMessages, List<Long> spentMessagesTime, List<Long> earnedMessagesTime) {
         MailsDTO mailsDTO = new MailsDTO();
         mailsDTO.setEarnedMails(earnedMessages);
@@ -94,4 +98,22 @@ public class GmailService {
         return mailsDTO;
     }
 
+    public boolean checkConn() {
+        try {
+            Gmail service = gmailConfigs();
+
+            ListMessagesResponse response = service.users().messages()
+                    .list("me")
+                    .setQ("newer_than:1m")
+                    .setMaxResults(20L)
+                    .execute();
+
+            List<Message> messages = response.getMessages();
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

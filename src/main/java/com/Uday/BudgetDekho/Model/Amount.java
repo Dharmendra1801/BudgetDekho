@@ -6,7 +6,8 @@ import lombok.Data;
 
 @Entity
 @Data
-public class TotalBalance {
+public class Amount {
     @Id
-    private Double totalBalance;
+    private String type;
+    private Long amount;
 }

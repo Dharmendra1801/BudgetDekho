@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 @Service
 public class TimeDateService {
@@ -18,14 +17,13 @@ public class TimeDateService {
 
     public String getDate() {
         TimeDate timeDate = timeDateRepo.findById("last").orElse(null);
-//        if (timeDate==null) return "2026/04/26";
+        if (timeDate==null) return getTodayDate();
         return timeDate.getDate();
     }
 
     public void saveDate() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        String date = getTodayDate(localDateTime);
-        Long milli = getMilliseconds(localDateTime);
+        String date = getTodayDate();
+        Long milli = getMilliseconds();
         TimeDate timeDate = getObj(date,milli);
         TimeDate lastTimeDate = timeDateRepo.findById("current").orElse(new TimeDate());
         timeDateRepo.deleteById("last");
@@ -47,12 +45,14 @@ public class TimeDateService {
         return timeDate;
     }
 
-    private String getTodayDate(LocalDateTime localDateTime) {
+    private String getTodayDate() {
+        LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         return localDateTime.format(dateTimeFormatter);
     }
 
-    private Long getMilliseconds(LocalDateTime localDateTime) {
+    private Long getMilliseconds() {
+        LocalDateTime localDateTime = LocalDateTime.now();
         return localDateTime.atZone(ZoneId.systemDefault())
                 .toInstant()
                 .toEpochMilli();
@@ -61,6 +61,15 @@ public class TimeDateService {
 
     public Long getTime() {
         TimeDate timeDate = timeDateRepo.findById("last").orElse(null);
+        if (timeDate==null) return getMilliseconds();
         return timeDate.getTimeInMillieSecs();
+    }
+
+    public void insertFirstDate() {
+        TimeDate timeDate = new TimeDate();
+        timeDate.setType("current");
+        timeDate.setDate(getTodayDate());
+        timeDate.setTimeInMillieSecs(getMilliseconds());
+        timeDateRepo.save(timeDate);
     }
 }

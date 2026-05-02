@@ -32,6 +32,6 @@ public class AuthController {
 
         flow.createAndStoreCredential(tokenResponse, "user");
 
-        response.sendRedirect("/api/budget/refresh");
+        response.sendRedirect("/api/budget/");
     }
 }

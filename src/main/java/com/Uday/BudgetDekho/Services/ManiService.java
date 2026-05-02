@@ -26,8 +26,6 @@ public class ManiService {
         int x = 0;
         for (Long time: times.reversed()) {
             if (time < lastTime) {
-                System.out.println(time);
-                System.out.println(lastTime);
                 x++;
             }
             else break;

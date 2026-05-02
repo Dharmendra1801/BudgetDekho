@@ -22,20 +22,23 @@ public class BudgetService {
     @Autowired
     TimeDateService timeDateService;
 
-    public List<Transaction> refreshBudgets() throws Exception {
+    @Autowired
+    AmountService amountService;
+
+    public void refreshBudgets() throws Exception {
         String date = timeDateService.getDate();
         MailsDTO mailsDTO = gmailService.getMails(date);
         List<String> resultant = maniService.getDataFromMails(mailsDTO.getSpentMails(),
                                                             mailsDTO.getEarnedMails(),
                                                             mailsDTO.getSpentMailsTime(),
                                                             mailsDTO.getEarnedMailsTime());
-        List<Transaction> transactions = transactionService.convertToObj(resultant);
-        if (!updateData(transactions)) return null;
-        return transactions;
+        transactionService.save(resultant);
     }
 
-    private boolean updateData(List<Transaction> transactions) {
-        return true;
+    public void updateData(List<Transaction> transactions) {
+        if (amountService.getCurrentAmount()==null) {
+            timeDateService.insertFirstDate();
+        }
     }
 
 }
