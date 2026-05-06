@@ -10,4 +10,6 @@ public class MailsDTO {
     private List<String> earnedMails;
     private List<Long> spentMailsTime;
     private List<Long> earnedMailsTime;
+    private Long time;
+    private String date;
 }

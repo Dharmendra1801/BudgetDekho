@@ -1,6 +1,7 @@
 package com.Uday.BudgetDekho.Services;
 
 import com.Uday.BudgetDekho.Model.Transaction;
+import com.Uday.BudgetDekho.Repo.TimeDateRepo;
 import com.Uday.BudgetDekho.Repo.TransactionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,17 @@ public class TransactionService {
     @Autowired
     TransactionRepo transactionRepo;
 
+    @Autowired
+    AmountService amountService;
+
+    @Autowired
+    TimeDateService timeDateService;
+
     public List<Transaction> convertToObj(List<String> resultant) {
         List<Transaction> list = new ArrayList<>();
         for (String t: resultant) {
             String[] splitted = t.split("_");
+            System.out.println(t);
             Transaction transaction = new Transaction();
             transaction.setAmount(Double.parseDouble(splitted[0]));
             transaction.setOtherPerson(splitted[1]);
@@ -32,9 +40,11 @@ public class TransactionService {
         return list;
     }
 
-    public void save(List<String> resultant) {
+    public void save(List<String> resultant, Long time, String date) {
         List<Transaction> list = convertToObj(resultant);
+        amountService.updateAmount(list);
         transactionRepo.saveAll(list);
+        timeDateService.saveDate(date,time);
     }
 
     public List<Transaction> getAll() {

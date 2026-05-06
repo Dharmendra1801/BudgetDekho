@@ -38,7 +38,8 @@ public class GmailService {
                 .setMaxResults(20L)
                 .execute();
 
-        timeDateService.saveDate();
+
+        Long milli = timeDateService.getMilliseconds();
 
         List<Message> spentMessagesId = responseSpent.getMessages();
         List<Message> earnedMessagesId = responseEarned.getMessages();
@@ -71,7 +72,7 @@ public class GmailService {
             }
         }
 
-        return createObj(spentMessages,earnedMessages,spentMessagesTime,earnedMessagesTime);
+        return createObj(spentMessages,earnedMessages,spentMessagesTime,earnedMessagesTime,milli,date);
     }
 
     private Gmail gmailConfigs() throws Exception {
@@ -89,12 +90,14 @@ public class GmailService {
         ).setApplicationName("gmail-reader").build();
     }
 
-    private MailsDTO createObj(List<String> spentMessages, List<String> earnedMessages, List<Long> spentMessagesTime, List<Long> earnedMessagesTime) {
+    private MailsDTO createObj(List<String> spentMessages, List<String> earnedMessages, List<Long> spentMessagesTime, List<Long> earnedMessagesTime, Long milli, String date) {
         MailsDTO mailsDTO = new MailsDTO();
         mailsDTO.setEarnedMails(earnedMessages);
         mailsDTO.setSpentMails(spentMessages);
         mailsDTO.setSpentMailsTime(spentMessagesTime);
         mailsDTO.setEarnedMailsTime(earnedMessagesTime);
+        mailsDTO.setTime(milli);
+        mailsDTO.setDate(date);
         return mailsDTO;
     }
 

@@ -5,12 +5,8 @@ import com.Uday.BudgetDekho.Repo.TransactionRepo;
 import com.Uday.BudgetDekho.Services.BudgetService;
 import com.Uday.BudgetDekho.Services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/budget")
@@ -24,14 +20,17 @@ public class BudgetController {
 
     @GetMapping("/")
     public void refresh() throws Exception {
-        System.out.println("hi");
         budgetService.refreshBudgets();
     }
 
-    @GetMapping("/data")
-    public List<Transaction> updateData() {
-//        budgetService.updateData(new ArrayList<>());
-        return transactionService.getAll();
+    @PostMapping("/add")
+    public void updateCurrentAmount(@RequestBody String amt) {
+        System.out.println("HI" + amt.getClass().getName() +" yeh hai > " + amt);
+        budgetService.updateCurrentAmount(amt);
     }
 
+    @GetMapping("/amt_left")
+    public ResponseEntity<String> amountLeft() {
+        return ResponseEntity.ok(budgetService.getCurrentAmount());
+    }
 }

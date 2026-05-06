@@ -21,14 +21,13 @@ public class TimeDateService {
         return timeDate.getDate();
     }
 
-    public void saveDate() {
-        String date = getTodayDate();
-        Long milli = getMilliseconds();
+    public void saveDate(String date, Long milli) {
         TimeDate timeDate = getObj(date,milli);
-        TimeDate lastTimeDate = timeDateRepo.findById("current").orElse(new TimeDate());
+        TimeDate lastTimeDate = getCurrentDateObj();
         timeDateRepo.deleteById("last");
         timeDateRepo.deleteById("current");
-        if (lastTimeDate.getDate()==null) {
+        if (lastTimeDate==null) {
+            lastTimeDate = new TimeDate();
             lastTimeDate.setTimeInMillieSecs(timeDate.getTimeInMillieSecs());
             lastTimeDate.setDate(timeDate.getDate());
         }
@@ -45,13 +44,13 @@ public class TimeDateService {
         return timeDate;
     }
 
-    private String getTodayDate() {
+    public String getTodayDate() {
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         return localDateTime.format(dateTimeFormatter);
     }
 
-    private Long getMilliseconds() {
+    public Long getMilliseconds() {
         LocalDateTime localDateTime = LocalDateTime.now();
         return localDateTime.atZone(ZoneId.systemDefault())
                 .toInstant()
@@ -59,17 +58,21 @@ public class TimeDateService {
     }
 
 
-    public Long getTime() {
+    public Long getLastTime() {
         TimeDate timeDate = timeDateRepo.findById("last").orElse(null);
         if (timeDate==null) return getMilliseconds();
         return timeDate.getTimeInMillieSecs();
     }
 
-    public void insertFirstDate() {
+    public void setFirstDate() {
         TimeDate timeDate = new TimeDate();
         timeDate.setType("current");
         timeDate.setDate(getTodayDate());
         timeDate.setTimeInMillieSecs(getMilliseconds());
         timeDateRepo.save(timeDate);
+    }
+
+    public TimeDate getCurrentDateObj() {
+        return timeDateRepo.findById("current").orElse(null);
     }
 }

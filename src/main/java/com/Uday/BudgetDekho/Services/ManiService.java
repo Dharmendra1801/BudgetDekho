@@ -22,7 +22,7 @@ public class ManiService {
     }
 
     private void removeMailsBeforeTime(List<String> messages, List<Long> times) {
-        Long lastTime = timeDateService.getTime();
+        Long lastTime = timeDateService.getLastTime();
         int x = 0;
         for (Long time: times.reversed()) {
             if (time < lastTime) {

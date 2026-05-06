@@ -1,7 +1,7 @@
 package com.Uday.BudgetDekho.Services;
 
 import com.Uday.BudgetDekho.DTO.MailsDTO;
-import com.Uday.BudgetDekho.Model.Transaction;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,13 +32,22 @@ public class BudgetService {
                                                             mailsDTO.getEarnedMails(),
                                                             mailsDTO.getSpentMailsTime(),
                                                             mailsDTO.getEarnedMailsTime());
-        transactionService.save(resultant);
+        transactionService.save(resultant,mailsDTO.getTime(),mailsDTO.getDate());
     }
 
-    public void updateData(List<Transaction> transactions) {
-        if (amountService.getCurrentAmount()==null) {
-            timeDateService.insertFirstDate();
-        }
+    public boolean isFirstTime() {
+        Boolean amt = amountService.getCurrentAmount()==null;
+        Boolean time = timeDateService.getCurrentDateObj()==null;
+        if (time) timeDateService.setFirstDate();
+        return amt || time;
     }
 
+    public void updateCurrentAmount(String amt) {
+        amountService.updateCurrentAmount(Double.parseDouble(amt));
+    }
+
+    public String getCurrentAmount() {
+        Double amt = amountService.getCurrentAmount();
+        return amt.toString();
+    }
 }

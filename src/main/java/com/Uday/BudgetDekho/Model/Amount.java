@@ -9,5 +9,5 @@ import lombok.Data;
 public class Amount {
     @Id
     private String type;
-    private Long amount;
+    private Double amount;
 }
