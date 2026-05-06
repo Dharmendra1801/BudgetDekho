@@ -50,4 +50,21 @@ public class TransactionService {
     public List<Transaction> getAll() {
         return transactionRepo.findAll();
     }
+
+    public Transaction getTransaction(Long x) {
+        return transactionRepo.findById(x).orElse(null);
+    }
+
+    public void deleteTransaction(String x) {
+        Transaction transaction = getTransaction(Long.parseLong(x));
+        amountService.reverseTransaction(transaction);
+        transactionRepo.deleteById(Long.parseLong(x));
+    }
+
+    public void reverseTransactions(String x) {
+        String[] ids = x.split(",");
+        for (String id: ids) {
+            deleteTransaction(id);
+        }
+    }
 }

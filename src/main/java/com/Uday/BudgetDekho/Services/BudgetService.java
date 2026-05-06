@@ -25,7 +25,7 @@ public class BudgetService {
     @Autowired
     AmountService amountService;
 
-    public void refreshBudgets() throws Exception {
+    public List<String> refreshBudgets() throws Exception {
         String date = timeDateService.getDate();
         MailsDTO mailsDTO = gmailService.getMails(date);
         List<String> resultant = maniService.getDataFromMails(mailsDTO.getSpentMails(),
@@ -33,6 +33,7 @@ public class BudgetService {
                                                             mailsDTO.getSpentMailsTime(),
                                                             mailsDTO.getEarnedMailsTime());
         transactionService.save(resultant,mailsDTO.getTime(),mailsDTO.getDate());
+        return resultant;
     }
 
     public boolean isFirstTime() {
@@ -48,6 +49,16 @@ public class BudgetService {
 
     public String getCurrentAmount() {
         Double amt = amountService.getCurrentAmount();
+        return amt.toString();
+    }
+
+    public String getTotalSpent() {
+        Double amt = amountService.getTotalSpent();
+        return amt.toString();
+    }
+
+    public String getTotalReceived() {
+        Double amt = amountService.getTotalReceived();
         return amt.toString();
     }
 }

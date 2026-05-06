@@ -52,13 +52,30 @@ public class AmountService {
         return amount==null? null: amount.getAmount();
     }
 
-    private Double getTotalReceived() {
+    public Double getTotalSpent() {
         Amount amount = amountRepo.findById("spent").orElse(null);
         return amount==null? 0: amount.getAmount();
     }
 
-    private Double getTotalSpent() {
+    public Double getTotalReceived() {
         Amount amount = amountRepo.findById("received").orElse(null);
         return amount==null? 0: amount.getAmount();
+    }
+
+    public void reverseTransaction(Transaction transaction) {
+        Double amt = getCurrentAmount();
+        Double revAmt = transaction.getAmount();
+        amt -= revAmt;
+        save(amt,"current");
+        if (revAmt<0) {
+            Double amtSpent = getTotalSpent();
+            amtSpent += revAmt;
+            save(amtSpent,"spent");
+        }
+        else {
+            Double amtRec = getTotalSpent();
+            amtRec -= revAmt;
+            save(amtRec,"received");
+        }
     }
 }
